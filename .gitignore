@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+.vercel/
+
+TCF_AI_CONTEXT.md
