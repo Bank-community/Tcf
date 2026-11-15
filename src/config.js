@@ -314,290 +314,52 @@ export const useLiveLeaderboard = () => {
   return { liveDonors };
 };
 
-// ===== Ultra-Fast Native Canvas Top-3 Leaderboard Poster & Share =====
-const isCanvasSafeImage = (img) => {
-  try {
-    const testCanvas = document.createElement('canvas');
-    testCanvas.width = 1;
-    testCanvas.height = 1;
-    const tCtx = testCanvas.getContext('2d');
-    tCtx.drawImage(img, 0, 0, 1, 1);
-    testCanvas.toDataURL();
-    return true;
-  } catch {
-    return false;
-  }
-};
-
-const loadCorsImage = (url) =>
-  new Promise((resolve) => {
-    if (!url) return resolve(null);
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    const timer = setTimeout(() => resolve(null), 4500);
-    img.onload = () => {
-      clearTimeout(timer);
-      resolve(isCanvasSafeImage(img) ? img : null);
-    };
-    img.onerror = () => {
-      clearTimeout(timer);
-      resolve(null);
-    };
-    // Cache-buster prevents browser from reusing non-CORS cached image
-    const sep = url.includes('?') ? '&' : '?';
-    img.src = `${url}${sep}cors=1`;
-  });
-
-const drawRoundRect = (ctx, x, y, w, h, r) => {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
-};
-
-const renderPosterCanvas = (top3, imgs, totalCollected, totalCount) => {
-  const canvas = document.createElement('canvas');
-  canvas.width = 900;
-  canvas.height = 1000;
-  const ctx = canvas.getContext('2d');
-
-  // Background Sky-Blue to Warm Gold Gradient
-  const bgGrad = ctx.createLinearGradient(0, 0, 0, 1000);
-  bgGrad.addColorStop(0, '#dbeafe');
-  bgGrad.addColorStop(0.5, '#f8fafc');
-  bgGrad.addColorStop(1, '#fef08a');
-  ctx.fillStyle = bgGrad;
-  ctx.fillRect(0, 0, 900, 1000);
-
-  // Outer Royal Gold Border
-  ctx.strokeStyle = '#c9a24b';
-  ctx.lineWidth = 10;
-  ctx.strokeRect(14, 14, 872, 972);
-
-  // Header Banner Box
-  const hdrGrad = ctx.createLinearGradient(60, 45, 840, 225);
-  hdrGrad.addColorStop(0, '#0a1d38');
-  hdrGrad.addColorStop(0.5, '#15345f');
-  hdrGrad.addColorStop(1, '#0a1d38');
-  drawRoundRect(ctx, 55, 45, 790, 185, 28);
-  ctx.fillStyle = hdrGrad;
-  ctx.fill();
-  ctx.lineWidth = 3;
-  ctx.strokeStyle = '#ffd700';
-  ctx.stroke();
-
-  ctx.textAlign = 'center';
-  ctx.fillStyle = '#fde047';
-  ctx.font = 'bold 22px sans-serif';
-  ctx.fillText('TRUST COMMUNITY FUND • छठ पूजा 2026', 450, 102);
-
-  ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 42px sans-serif';
-  ctx.fillText('छठ पूजा दानदाता लीडरबोर्ड 🙏', 450, 165);
-
-  ctx.fillStyle = '#ecd592';
-  ctx.font = '600 20px sans-serif';
-  ctx.fillText(`कुल दानदाता: ${totalCount}   |   कुल संग्रह: ${formatINR(totalCollected)}`, 450, 206);
-
-  // Podium Card Layout: Left (#2), Center (#1), Right (#3)
-  const slots = [
-    { donor: top3[1], img: imgs[1], rank: 2, x: 48, y: 315, w: 252, h: 520, c1: '#2563eb', c2: '#0a1d38', border: '#93c5fd', badge: '🥈 #2' },
-    { donor: top3[0], img: imgs[0], rank: 1, x: 316, y: 265, w: 268, h: 570, c1: '#f59e0b', c2: '#78350f', border: '#ffd700', badge: '👑 #1' },
-    { donor: top3[2], img: imgs[2], rank: 3, x: 600, y: 325, w: 252, h: 510, c1: '#d97706', c2: '#451a03', border: '#fcd34d', badge: '🥉 #3' },
-  ];
-
-  slots.forEach((s) => {
-    if (!s.donor) return;
-    const cardGrad = ctx.createLinearGradient(s.x, s.y, s.x, s.y + s.h);
-    cardGrad.addColorStop(0, s.c1);
-    cardGrad.addColorStop(1, s.c2);
-    drawRoundRect(ctx, s.x, s.y, s.w, s.h, 28);
-    ctx.fillStyle = cardGrad;
-    ctx.fill();
-    ctx.lineWidth = s.rank === 1 ? 5 : 3;
-    ctx.strokeStyle = s.border;
-    ctx.stroke();
-
-    // Rank Pill at Top
-    drawRoundRect(ctx, s.x + s.w / 2 - 58, s.y - 22, 116, 44, 22);
-    ctx.fillStyle = s.rank === 1 ? '#fde047' : '#ffffff';
-    ctx.fill();
-    ctx.strokeStyle = '#0a1d38';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.fillStyle = '#0a1d38';
-    ctx.font = 'bold 22px sans-serif';
-    ctx.fillText(s.badge, s.x + s.w / 2, s.y + 8);
-
-    // Circular Avatar
-    const cx = s.x + s.w / 2;
-    const cy = s.y + (s.rank === 1 ? 155 : 140);
-    const radius = s.rank === 1 ? 76 : 66;
-
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-    ctx.closePath();
-    ctx.fillStyle = '#0a1d38';
-    ctx.fill();
-    ctx.clip();
-
-    if (s.img) {
-      const ratio = Math.max((radius * 2) / s.img.width, (radius * 2) / s.img.height);
-      const nw = s.img.width * ratio;
-      const nh = s.img.height * ratio;
-      ctx.drawImage(s.img, cx - nw / 2, cy - nh / 2, nw, nh);
-    } else {
-      const initials = (s.donor.name || 'TC')
-        .split(' ')
-        .map((n) => n[0])
-        .slice(0, 2)
-        .join('')
-        .toUpperCase();
-      ctx.fillStyle = '#fde047';
-      ctx.font = `bold ${s.rank === 1 ? 42 : 36}px sans-serif`;
-      ctx.fillText(initials, cx, cy + 14);
-    }
-    ctx.restore();
-
-    ctx.beginPath();
-    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-    ctx.lineWidth = 5;
-    ctx.strokeStyle = s.border;
-    ctx.stroke();
-
-    // White Name Pill
-    const nameY = cy + radius + 32;
-    drawRoundRect(ctx, s.x + 16, nameY, s.w - 32, 54, 27);
-    ctx.fillStyle = '#ffffff';
-    ctx.fill();
-    ctx.fillStyle = '#0a1d38';
-    ctx.font = `bold ${s.rank === 1 ? 23 : 20}px sans-serif`;
-    const shortName = s.donor.name.length > 16 ? s.donor.name.slice(0, 15) + '…' : s.donor.name;
-    ctx.fillText(shortName, cx, nameY + 35);
-
-    // Dark Navy Amount Pill
-    const amtY = nameY + 72;
-    drawRoundRect(ctx, s.x + 26, amtY, s.w - 52, 54, 27);
-    ctx.fillStyle = 'rgba(10, 29, 56, 0.9)';
-    ctx.fill();
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = s.border;
-    ctx.stroke();
-    ctx.fillStyle = s.rank === 1 ? '#fde047' : '#ffffff';
-    ctx.font = `bold ${s.rank === 1 ? 28 : 24}px sans-serif`;
-    ctx.fillText(formatINR(s.donor.amount), cx, amtY + 37);
-  });
-
-  // Clean Festive Footer Banner (No fake link inside image)
-  drawRoundRect(ctx, 55, 872, 790, 82, 24);
-  ctx.fillStyle = '#0a1d38';
-  ctx.fill();
-  ctx.lineWidth = 2.5;
-  ctx.strokeStyle = '#ffd700';
-  ctx.stroke();
-
-  ctx.fillStyle = '#fde047';
-  ctx.font = 'bold 26px sans-serif';
-  ctx.fillText('🪔 आस्था • सेवा • समुदाय • साथ हमेशा 🪔', 450, 922);
-
-  return canvas;
-};
-
-const showShareHintToast = (msg) => {
-  if (typeof document === 'undefined') return;
-  const existing = document.getElementById('tcf-share-toast');
-  if (existing) existing.remove();
-  const el = document.createElement('div');
-  el.id = 'tcf-share-toast';
-  el.textContent = msg;
-  Object.assign(el.style, {
-    position: 'fixed',
-    bottom: '96px',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    background: '#0a1d38',
-    color: '#fde047',
-    border: '1.5px solid #ffd700',
-    padding: '10px 18px',
-    borderRadius: '999px',
-    fontSize: '13px',
-    fontWeight: '700',
-    zIndex: '999999',
-    boxShadow: '0 10px 25px rgba(0,0,0,0.4)',
-    whiteSpace: 'nowrap',
-  });
-  document.body.appendChild(el);
-  setTimeout(() => el.remove(), 4500);
-};
+// ===== Direct Poster Image & Website Link Share =====
+export const LEADERBOARD_SHARE_IMAGE = 'https://ik.imagekit.io/kdtvm0r78/imagebox-uploads/38407-amp_eq2j6kmjs.jpg';
 
 export const shareLeaderboardPoster = async (sortedDonors = []) => {
   const top3 = sortedDonors.slice(0, 3);
-  const totalCollected = sortedDonors.reduce((sum, d) => sum + (Number(d.amount) || 0), 0);
-  const siteUrl = typeof window !== 'undefined' ? window.location.origin : 'https://www.trustcf.sbs';
+  const siteUrl = typeof window !== 'undefined' ? window.location.origin : 'https://tcf-seven.vercel.app';
 
   const rankLines = top3
     .map((d, i) => `${i === 0 ? '👑' : i === 1 ? '🥈' : '🥉'} #${i + 1} ${d.name} — ${formatINR(d.amount)}`)
     .join('\n');
 
-  const shareText = `🙏 *Trust Community Fund (TCF) — छठ पूजा 2026 दानदाता लीडरबोर्ड*\n\n${rankLines || 'लाइव दानदाता सूची देखें!'}\n\n🔗 पूरा लाइव लीडरबोर्ड देखने के लिए लिंक पर क्लिक करें:\n${siteUrl}`;
+  const shareText = `🙏 *Trust Community Fund (TCF) — छठ पूजा 2026 दानदाता लीडरबोर्ड*\n\n${rankLines || 'लाइव दानदाता सूची देखें!'}\n\n🔗 पूरा लाइव लीडरबोर्ड देखने के लिए क्लिक करें:\n${siteUrl}`;
 
-  // Copy clickable link + rankings to clipboard so user can paste directly into WhatsApp caption
-  if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
-    try {
-      await navigator.clipboard.writeText(shareText);
-      showShareHintToast('📋 लिंक कॉपी हो गया! WhatsApp कैप्शन में Paste करें');
-    } catch {}
-  }
-
-  // Load Top 3 photos in parallel with CORS cache-buster
-  const imgs = await Promise.all([
-    loadCorsImage(top3[0]?.photo),
-    loadCorsImage(top3[1]?.photo),
-    loadCorsImage(top3[2]?.photo),
-  ]);
-
-  let blob = null;
   try {
-    const canvas = renderPosterCanvas(top3, imgs, totalCollected, sortedDonors.length);
-    blob = await new Promise((res) => canvas.toBlob(res, 'image/png'));
-  } catch {
-    const safeCanvas = renderPosterCanvas(top3, [null, null, null], totalCollected, sortedDonors.length);
-    blob = await new Promise((res) => safeCanvas.toBlob(res, 'image/png'));
+    const response = await fetch(LEADERBOARD_SHARE_IMAGE);
+    const blob = await response.blob();
+    const file = new File([blob], 'TCF-Chhath-Leaderboard-2026.jpg', {
+      type: blob.type || 'image/jpeg',
+    });
+
+    if (typeof navigator !== 'undefined' && navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        files: [file],
+        title: 'TCF छठ पूजा 2026 दानदाता लीडरबोर्ड',
+        text: shareText,
+        url: siteUrl,
+      });
+      return;
+    }
+  } catch (err) {
+    if (err?.name === 'AbortError') return;
   }
 
-  if (blob && typeof navigator !== 'undefined' && navigator.canShare) {
-    const file = new File([blob], 'TCF-Chhath-Leaderboard-2026.png', { type: 'image/png' });
-    if (navigator.canShare({ files: [file] })) {
-      try {
-        await navigator.share({
-          files: [file],
-          title: 'TCF छठ पूजा 2026 दानदाता लीडरबोर्ड',
-          text: shareText,
-          url: siteUrl,
-        });
-        return;
-      } catch (err) {
-        if (err?.name === 'AbortError') return;
-      }
+  // Fallback: Share website link directly
+  if (typeof navigator !== 'undefined' && navigator.share) {
+    try {
+      await navigator.share({
+        title: 'TCF छठ पूजा 2026 दानदाता लीडरबोर्ड',
+        text: shareText,
+        url: siteUrl,
+      });
+      return;
+    } catch (err) {
+      if (err?.name === 'AbortError') return;
     }
   }
 
-  // Fallback for desktop browsers: download poster + open WhatsApp share link
-  if (blob) {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'TCF-Chhath-Leaderboard-2026.png';
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 3000);
-  }
   window.open(`https://wa.me/?text=${encodeURIComponent(shareText)}`, '_blank', 'noopener,noreferrer');
 };
