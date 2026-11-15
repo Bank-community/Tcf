@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { LEADERBOARD_DONORS, LEADERBOARD_SETTINGS, getSortedLeaderboard, formatINR, useLiveLeaderboard } from './config.js';
 import { useLeaderboardLikes } from './useLeaderboardLikes.js';
 import { Reveal } from './components.jsx';
@@ -8,6 +9,23 @@ import { Reveal } from './components.jsx';
  */
 export function DonorAvatar({ photo, name, rank, size = 64 }) {
   const [imgError, setImgError] = React.useState(false);
+  const [isOpen, setIsOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKey = (e) => {
+      if (e.key === 'Escape') setIsOpen(false);
+    };
+    window.addEventListener('keydown', handleKey);
+
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener('keydown', handleKey);
+    };
+  }, [isOpen]);
 
   // Generate initials (e.g. "Keshav Mishra" -> "KM")
   const initials = name
@@ -34,17 +52,74 @@ export function DonorAvatar({ photo, name, rank, size = 64 }) {
   }
 
   return (
-    <div className={`donor-avatar-wrapper ${rankClass}`} style={{ width: `${size}px`, height: `${size}px` }}>
-      <img
-        src={photo}
-        alt={`${name}'s photo`}
-        className="donor-avatar-img"
-        loading="lazy"
-        onError={() => setImgError(true)}
-      />
-    </div>
+    <>
+      <div
+        className={`donor-avatar-wrapper clickable-avatar ${rankClass}`}
+        style={{ width: `${size}px`, height: `${size}px` }}
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsOpen(true);
+        }}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsOpen(true);
+          }
+        }}
+        aria-label={`${name} की प्रोफाइल फोटो फुल व्यू में देखें`}
+        title="फोटो बड़ा करके देखें"
+      >
+        <img
+          src={photo}
+          alt={`${name}'s photo`}
+          className="donor-avatar-img"
+          loading="lazy"
+          onError={() => setImgError(true)}
+        />
+      </div>
+
+      {isOpen &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <div
+            className="avatar-lightbox-overlay"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsOpen(false);
+            }}
+            role="dialog"
+            aria-modal="true"
+            aria-label={name}
+          >
+            <button
+              type="button"
+              className="avatar-lb-close"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsOpen(false);
+              }}
+              aria-label="बंद करें"
+            >
+              ✕
+            </button>
+
+            <div className="avatar-lb-card" onClick={(e) => e.stopPropagation()}>
+              <img src={photo} alt={name} className="avatar-lb-full-img" />
+              <div className="avatar-lb-caption">
+                {rank && <span className="avatar-lb-rank">#{rank}</span>}
+                <strong>{name}</strong>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
+    </>
   );
 }
+
 
 /**
  * Like button with Heart icon, like count, accessible state, and heartbeat animation
