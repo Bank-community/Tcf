@@ -315,21 +315,37 @@ export const useLiveLeaderboard = () => {
 };
 
 // ===== Ultra-Fast Native Canvas Top-3 Leaderboard Poster & Share =====
+const isCanvasSafeImage = (img) => {
+  try {
+    const testCanvas = document.createElement('canvas');
+    testCanvas.width = 1;
+    testCanvas.height = 1;
+    const tCtx = testCanvas.getContext('2d');
+    tCtx.drawImage(img, 0, 0, 1, 1);
+    testCanvas.toDataURL();
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 const loadCorsImage = (url) =>
   new Promise((resolve) => {
     if (!url) return resolve(null);
     const img = new Image();
     img.crossOrigin = 'anonymous';
-    const timer = setTimeout(() => resolve(null), 1800);
+    const timer = setTimeout(() => resolve(null), 4500);
     img.onload = () => {
       clearTimeout(timer);
-      resolve(img);
+      resolve(isCanvasSafeImage(img) ? img : null);
     };
     img.onerror = () => {
       clearTimeout(timer);
       resolve(null);
     };
-    img.src = url;
+    // Cache-buster prevents browser from reusing non-CORS cached image
+    const sep = url.includes('?') ? '&' : '?';
+    img.src = `${url}${sep}cors=1`;
   });
 
 const drawRoundRect = (ctx, x, y, w, h, r) => {
@@ -346,24 +362,24 @@ const drawRoundRect = (ctx, x, y, w, h, r) => {
   ctx.closePath();
 };
 
-const renderPosterCanvas = (top3, imgs, totalCollected, totalCount, siteUrl) => {
+const renderPosterCanvas = (top3, imgs, totalCollected, totalCount) => {
   const canvas = document.createElement('canvas');
   canvas.width = 900;
-  canvas.height = 1080;
+  canvas.height = 1000;
   const ctx = canvas.getContext('2d');
 
   // Background Sky-Blue to Warm Gold Gradient
-  const bgGrad = ctx.createLinearGradient(0, 0, 0, 1080);
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, 1000);
   bgGrad.addColorStop(0, '#dbeafe');
   bgGrad.addColorStop(0.5, '#f8fafc');
   bgGrad.addColorStop(1, '#fef08a');
   ctx.fillStyle = bgGrad;
-  ctx.fillRect(0, 0, 900, 1080);
+  ctx.fillRect(0, 0, 900, 1000);
 
   // Outer Royal Gold Border
   ctx.strokeStyle = '#c9a24b';
   ctx.lineWidth = 10;
-  ctx.strokeRect(14, 14, 872, 1052);
+  ctx.strokeRect(14, 14, 872, 972);
 
   // Header Banner Box
   const hdrGrad = ctx.createLinearGradient(60, 45, 840, 225);
@@ -480,26 +496,46 @@ const renderPosterCanvas = (top3, imgs, totalCollected, totalCount, siteUrl) => 
     ctx.fillText(formatINR(s.donor.amount), cx, amtY + 37);
   });
 
-  // Bottom Website Link CTA Bar
-  drawRoundRect(ctx, 55, 880, 790, 145, 26);
+  // Clean Festive Footer Banner (No fake link inside image)
+  drawRoundRect(ctx, 55, 872, 790, 82, 24);
   ctx.fillStyle = '#0a1d38';
   ctx.fill();
-  ctx.lineWidth = 3;
+  ctx.lineWidth = 2.5;
   ctx.strokeStyle = '#ffd700';
   ctx.stroke();
 
   ctx.fillStyle = '#fde047';
   ctx.font = 'bold 26px sans-serif';
-  ctx.fillText('पूरा लाइव लीडरबोर्ड देखने के लिए नीचे दिए लिंक पर क्लिक करें 👇', 450, 938);
-
-  drawRoundRect(ctx, 130, 958, 640, 46, 23);
-  ctx.fillStyle = '#ffffff';
-  ctx.fill();
-  ctx.fillStyle = '#0a1d38';
-  ctx.font = 'bold 22px sans-serif';
-  ctx.fillText(siteUrl.replace(/^https?:\/\//, ''), 450, 989);
+  ctx.fillText('🪔 आस्था • सेवा • समुदाय • साथ हमेशा 🪔', 450, 922);
 
   return canvas;
+};
+
+const showShareHintToast = (msg) => {
+  if (typeof document === 'undefined') return;
+  const existing = document.getElementById('tcf-share-toast');
+  if (existing) existing.remove();
+  const el = document.createElement('div');
+  el.id = 'tcf-share-toast';
+  el.textContent = msg;
+  Object.assign(el.style, {
+    position: 'fixed',
+    bottom: '96px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    background: '#0a1d38',
+    color: '#fde047',
+    border: '1.5px solid #ffd700',
+    padding: '10px 18px',
+    borderRadius: '999px',
+    fontSize: '13px',
+    fontWeight: '700',
+    zIndex: '999999',
+    boxShadow: '0 10px 25px rgba(0,0,0,0.4)',
+    whiteSpace: 'nowrap',
+  });
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 4500);
 };
 
 export const shareLeaderboardPoster = async (sortedDonors = []) => {
@@ -511,9 +547,17 @@ export const shareLeaderboardPoster = async (sortedDonors = []) => {
     .map((d, i) => `${i === 0 ? '👑' : i === 1 ? '🥈' : '🥉'} #${i + 1} ${d.name} — ${formatINR(d.amount)}`)
     .join('\n');
 
-  const shareText = `🙏 *Trust Community Fund (TCF) — छठ पूजा 2026 दानदाता लीडरबोर्ड*\n\n${rankLines || 'लाइव दानदाता सूची देखें!'}\n\n🔗 लाइव रैंकिंग देखने के लिए क्लिक करें:\n${siteUrl}`;
+  const shareText = `🙏 *Trust Community Fund (TCF) — छठ पूजा 2026 दानदाता लीडरबोर्ड*\n\n${rankLines || 'लाइव दानदाता सूची देखें!'}\n\n🔗 पूरा लाइव लीडरबोर्ड देखने के लिए लिंक पर क्लिक करें:\n${siteUrl}`;
 
-  // Load Top 3 photos in parallel (fast 1.8s timeout)
+  // Copy clickable link + rankings to clipboard so user can paste directly into WhatsApp caption
+  if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(shareText);
+      showShareHintToast('📋 लिंक कॉपी हो गया! WhatsApp कैप्शन में Paste करें');
+    } catch {}
+  }
+
+  // Load Top 3 photos in parallel with CORS cache-buster
   const imgs = await Promise.all([
     loadCorsImage(top3[0]?.photo),
     loadCorsImage(top3[1]?.photo),
@@ -522,11 +566,10 @@ export const shareLeaderboardPoster = async (sortedDonors = []) => {
 
   let blob = null;
   try {
-    const canvas = renderPosterCanvas(top3, imgs, totalCollected, sortedDonors.length, siteUrl);
+    const canvas = renderPosterCanvas(top3, imgs, totalCollected, sortedDonors.length);
     blob = await new Promise((res) => canvas.toBlob(res, 'image/png'));
   } catch {
-    // Fallback without external images if CORS blocks export
-    const safeCanvas = renderPosterCanvas(top3, [null, null, null], totalCollected, sortedDonors.length, siteUrl);
+    const safeCanvas = renderPosterCanvas(top3, [null, null, null], totalCollected, sortedDonors.length);
     blob = await new Promise((res) => safeCanvas.toBlob(res, 'image/png'));
   }
 
@@ -538,6 +581,7 @@ export const shareLeaderboardPoster = async (sortedDonors = []) => {
           files: [file],
           title: 'TCF छठ पूजा 2026 दानदाता लीडरबोर्ड',
           text: shareText,
+          url: siteUrl,
         });
         return;
       } catch (err) {
