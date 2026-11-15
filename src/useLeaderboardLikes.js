@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ref, onValue, update, increment } from 'firebase/database';
+import confetti from 'canvas-confetti';
 import { db, LEADERBOARD_SETTINGS } from './config.js';
 
 const STORAGE_KEY = 'tcf_chhath_likes_v2';
@@ -85,6 +86,18 @@ export function useLeaderboardLikes() {
           console.error('Failed to save like to Firebase:', err);
         });
       }
+    }
+
+    if (!currentlyLiked) {
+      try {
+        confetti({
+          particleCount: 55,
+          spread: 65,
+          origin: { y: 0.72 },
+          colors: ['#ffd700', '#f59e0b', '#ef4444', '#ffffff'],
+          zIndex: 99999
+        });
+      } catch {}
     }
 
     setAnimatingId(donorId);

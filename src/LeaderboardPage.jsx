@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import confetti from 'canvas-confetti';
 import { SITE, LEADERBOARD_DONORS, LEADERBOARD_SETTINGS, getSortedLeaderboard, formatINR, wa, MSGS, useLiveLeaderboard } from './config.js';
 import { DonorAvatar, LikeButton } from './LeaderboardSection.jsx';
 import { useLeaderboardLikes } from './useLeaderboardLikes.js';
@@ -31,6 +32,24 @@ export default function LeaderboardPage({ onBack, onNavigate }) {
   const totalCollected = useMemo(() => {
     return allSortedDonors.reduce((sum, d) => sum + d.amount, 0);
   }, [allSortedDonors]);
+  const goalPercent = LEADERBOARD_SETTINGS.campaignGoal > 0
+    ? Math.round((totalCollected / LEADERBOARD_SETTINGS.campaignGoal) * 100)
+    : 0;
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      try {
+        confetti({
+          particleCount: 65,
+          spread: 75,
+          origin: { y: 0.55 },
+          colors: ['#ffd700', '#f59e0b', '#ffffff'],
+          zIndex: 99999
+        });
+      } catch {}
+    }, 300);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <div className="chhath-full-leaderboard-page">
@@ -135,6 +154,20 @@ export default function LeaderboardPage({ onBack, onNavigate }) {
                 <span className="flb-stat-title">हमारा लक्ष्य</span>
                 <strong className="flb-stat-number">{formatINR(LEADERBOARD_SETTINGS.campaignGoal)}</strong>
               </div>
+            </div>
+          </div>
+
+          {/* Live Campaign Goal Progress Bar */}
+          <div className="flb-goal-progress-wrap">
+            <div className="clb-goal-meta">
+              <span>🎯 अभियान प्रगति (Campaign Goal)</span>
+              <strong>{goalPercent}% {goalPercent >= 100 ? 'लक्ष्य पूर्ण! 🎉' : 'पूर्ण'}</strong>
+            </div>
+            <div className="clb-goal-track">
+              <div
+                className="clb-goal-fill"
+                style={{ width: `${Math.min(100, goalPercent)}%` }}
+              ></div>
             </div>
           </div>
         </div>

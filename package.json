@@ -4,6 +4,6 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": { "dev": "vite --host 127.0.0.1", "build": "vite build", "preview": "vite preview --host 127.0.0.1" },
-    "dependencies": { "react": "^18.3.1", "react-dom": "^18.3.1", "firebase": "^10.11.0" },
+  "dependencies": { "react": "^18.3.1", "react-dom": "^18.3.1", "firebase": "^10.11.0", "canvas-confetti": "^1.9.3" },
   "devDependencies": { "@vitejs/plugin-react": "^4.3.1", "vite": "^5.4.0" }
 }

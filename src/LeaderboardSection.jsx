@@ -1,5 +1,6 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
+import confetti from 'canvas-confetti';
 import { LEADERBOARD_DONORS, LEADERBOARD_SETTINGS, getSortedLeaderboard, formatINR, useLiveLeaderboard } from './config.js';
 import { useLeaderboardLikes } from './useLeaderboardLikes.js';
 import { Reveal } from './components.jsx';
@@ -165,10 +166,50 @@ export default function LeaderboardSection({ onNavigate }) {
   const topFive = sortedDonors.slice(0, 5);
 
   const { isLiked, getLikeCount, toggleLike, animatingId } = useLeaderboardLikes();
+  const sectionRef = React.useRef(null);
+  const celebratedRef = React.useRef(false);
 
-  // Metrics calculated from full demo dataset
+  // Metrics calculated from dataset
   const totalDonorsCount = sortedDonors.length;
   const totalCollected = sortedDonors.reduce((acc, d) => acc + d.amount, 0);
+  const goalPercent = LEADERBOARD_SETTINGS.campaignGoal > 0
+    ? Math.round((totalCollected / LEADERBOARD_SETTINGS.campaignGoal) * 100)
+    : 0;
+
+  const fireChampionConfetti = React.useCallback(() => {
+    try {
+      confetti({
+        particleCount: 45,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0, y: 0.65 },
+        colors: ['#ffd700', '#f59e0b', '#ffffff'],
+        zIndex: 99999
+      });
+      confetti({
+        particleCount: 45,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1, y: 0.65 },
+        colors: ['#ffd700', '#f59e0b', '#ffffff'],
+        zIndex: 99999
+      });
+    } catch {}
+  }, []);
+
+  React.useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && !celebratedRef.current && sortedDonors.length > 0) {
+        celebratedRef.current = true;
+        fireChampionConfetti();
+        io.disconnect();
+      }
+    }, { threshold: 0.25 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [sortedDonors.length, fireChampionConfetti]);
 
   const rank1 = topFive[0];
   const rank2 = topFive[1];
@@ -177,7 +218,7 @@ export default function LeaderboardSection({ onNavigate }) {
   const rank5 = topFive[4];
 
   return (
-    <section id="leaderboard-section" className="chhath-leaderboard-section">
+    <section id="leaderboard-section" ref={sectionRef} className="chhath-leaderboard-section">
       <div className="wrap">
         {/* Section Header */}
         <Reveal>
@@ -205,8 +246,9 @@ export default function LeaderboardSection({ onNavigate }) {
         <div className="clb-podium-container">
           {/* Rank #2 (Silver - Left) */}
           {rank2 && (
-            <Reveal delay={120} className="clb-podium-slot slot-rank-2">
+            <Reveal delay={140} className="clb-podium-slot slot-rank-2">
               <div className="clb-podium-card card-silver">
+                <div className="clb-shine-sweep" aria-hidden="true"></div>
                 <div className="clb-crown-badge silver">
                   <span className="crown-icon">🥈</span>
                   <span className="crown-rank">2</span>
@@ -235,12 +277,19 @@ export default function LeaderboardSection({ onNavigate }) {
           {/* Rank #1 (Gold - Center, Tallest) */}
           {rank1 && (
             <Reveal delay={60} className="clb-podium-slot slot-rank-1">
-              <div className="clb-podium-card card-gold">
-                <div className="clb-gold-laurel-accent" aria-hidden="true"></div>
+              <div
+                className="clb-podium-card card-gold"
+                onClick={fireChampionConfetti}
+                title="जश्न मनाने के लिए टैप करें 🎉"
+              >
+                <div className="clb-sunburst-rays" aria-hidden="true"></div>
+                <div className="clb-shine-sweep" aria-hidden="true"></div>
                 <div className="clb-crown-badge gold">
                   <span className="crown-icon">👑</span>
                   <span className="crown-rank">1</span>
                 </div>
+
+                <span className="clb-champion-ribbon">★ TOP DONOR ★</span>
 
                 <div className="clb-card-avatar-box gold-glow">
                   <DonorAvatar photo={rank1.photo} name={rank1.name} rank={1} size={88} />
@@ -264,8 +313,9 @@ export default function LeaderboardSection({ onNavigate }) {
 
           {/* Rank #3 (Bronze - Right) */}
           {rank3 && (
-            <Reveal delay={180} className="clb-podium-slot slot-rank-3">
+            <Reveal delay={220} className="clb-podium-slot slot-rank-3">
               <div className="clb-podium-card card-bronze">
+                <div className="clb-shine-sweep" aria-hidden="true"></div>
                 <div className="clb-crown-badge bronze">
                   <span className="crown-icon">🥉</span>
                   <span className="crown-rank">3</span>
@@ -369,6 +419,20 @@ export default function LeaderboardSection({ onNavigate }) {
               <div className="clb-stat-data">
                 <span className="clb-stat-label">हमारा लक्ष्य</span>
                 <strong className="clb-stat-val">{formatINR(LEADERBOARD_SETTINGS.campaignGoal)}</strong>
+              </div>
+            </div>
+
+            {/* Live Campaign Goal Progress Bar */}
+            <div className="clb-goal-progress-wrap">
+              <div className="clb-goal-meta">
+                <span>🎯 अभियान प्रगति (Campaign Goal)</span>
+                <strong>{goalPercent}% {goalPercent >= 100 ? 'लक्ष्य पूर्ण! 🎉' : 'पूर्ण'}</strong>
+              </div>
+              <div className="clb-goal-track">
+                <div
+                  className="clb-goal-fill"
+                  style={{ width: `${Math.min(100, goalPercent)}%` }}
+                ></div>
               </div>
             </div>
           </div>
