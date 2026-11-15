@@ -1,14 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ref, onValue, runTransaction } from 'firebase/database';
+import { ref, onValue, update, increment } from 'firebase/database';
 import { db, LEADERBOARD_SETTINGS } from './config.js';
 
 const STORAGE_KEY = 'tcf_chhath_likes_v2';
 
-/**
- * Custom hook for managing donor appreciation (Likes).
- * Saves individual user's liked state in localStorage and syncs total countable likes
- * in real-time with Firebase Realtime Database. Likes NEVER affect donation ranking.
- */
+// Firebase key में अवैध अक्षर (., #, $, [, ], /) हटाने के लिए
+const toSafeKey = (id) => String(id || '').trim().replace(/[.#$\[\]/]/g, '_');
+
 export function useLeaderboardLikes() {
   const [likesState, setLikesState] = useState(() => {
     if (typeof window === 'undefined') {
@@ -25,22 +23,27 @@ export function useLeaderboardLikes() {
   const [dbLikes, setDbLikes] = useState({});
   const [animatingId, setAnimatingId] = useState(null);
 
-  // Sync user's liked status to localStorage
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(likesState));
     } catch {
-      // Ignore quota/private browsing issues
+      // Ignore storage errors
     }
   }, [likesState]);
 
-  // Subscribe to real-time like counts from Firebase Realtime Database
+  // Firebase Realtime Database से लाइव लाइक काउंट सुनें
   useEffect(() => {
     if (LEADERBOARD_SETTINGS.isDemo) return;
     const likesRef = ref(db, 'leaderboardLikes');
-    const unsubscribe = onValue(likesRef, (snapshot) => {
-      setDbLikes(snapshot.val() || {});
-    });
+    const unsubscribe = onValue(
+      likesRef,
+      (snapshot) => {
+        setDbLikes(snapshot.val() || {});
+      },
+      (error) => {
+        console.error('Error reading leaderboardLikes:', error);
+      }
+    );
     return () => unsubscribe();
   }, []);
 
@@ -54,15 +57,13 @@ export function useLeaderboardLikes() {
       const likedByUser = !!likesState.userLiked[donor.id];
       return base + (likedByUser ? 1 : 0);
     }
-    const liveCount = typeof dbLikes[donor.id] === 'number' ? dbLikes[donor.id] : 0;
-    if (likesState.userLiked[donor.id] && liveCount === 0) {
-      return 1;
-    }
-    return liveCount;
+    const safeKey = toSafeKey(donor.id);
+    return typeof dbLikes[safeKey] === 'number' ? dbLikes[safeKey] : 0;
   }, [likesState, dbLikes]);
 
   const toggleLike = useCallback((donorId) => {
     const currentlyLiked = !!likesState.userLiked[donorId];
+    const safeKey = toSafeKey(donorId);
 
     setLikesState((prev) => ({
       ...prev,
@@ -72,23 +73,25 @@ export function useLeaderboardLikes() {
       },
     }));
 
-    // Atomically increment or decrement the count in Firebase Realtime Database
-    if (!LEADERBOARD_SETTINGS.isDemo) {
-      const donorLikeRef = ref(db, `leaderboardLikes/${donorId}`);
-      runTransaction(donorLikeRef, (currentVal) => {
-        const curr = Number(currentVal) || 0;
-        return currentlyLiked ? Math.max(0, curr - 1) : curr + 1;
-      }).catch((err) => {
-        console.error('Failed to sync like to database:', err);
-      });
+    if (!LEADERBOARD_SETTINGS.isDemo && safeKey) {
+      const currentDbVal = typeof dbLikes[safeKey] === 'number' ? dbLikes[safeKey] : 0;
+      // अगर पहले से लाइक है तो -1 करें (0 से नीचे न जाए), वरना +1 करें
+      const delta = currentlyLiked ? (currentDbVal > 0 ? -1 : 0) : 1;
+
+      if (delta !== 0) {
+        update(ref(db, 'leaderboardLikes'), {
+          [safeKey]: increment(delta),
+        }).catch((err) => {
+          console.error('Failed to save like to Firebase:', err);
+        });
+      }
     }
 
-    // Trigger brief heartbeat pop animation
     setAnimatingId(donorId);
     setTimeout(() => {
       setAnimatingId((curr) => (curr === donorId ? null : curr));
     }, 700);
-  }, [likesState]);
+  }, [likesState, dbLikes]);
 
   return {
     isLiked,
