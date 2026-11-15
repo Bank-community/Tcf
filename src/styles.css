@@ -410,11 +410,13 @@ section{padding:64px 0}
 .footer-legal p{font-size:0.8rem;line-height:1.7;color:#6b7c9e;margin-bottom:16px}
 .copy{font-size:0.8rem;color:#4a5568;font-family:'Poppins',sans-serif}
 
-/* --- Floating Action Button (WhatsApp Icon Only) --- */
-.fab{position:fixed;right:20px;bottom:20px;z-index:50;display:grid;place-items:center;width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg, #25d366, #128c7e);color:#fff;text-decoration:none;box-shadow:0 8px 24px rgba(37,211,102,0.4);transition:transform 0.3s cubic-bezier(0.175,0.885,0.32,1.275), box-shadow 0.3s ease;animation:fabFloat 3s ease-in-out infinite}
-.fab svg{width:32px;height:32px;transition:transform 0.3s ease}
-.fab:hover{transform:translateY(-5px) scale(1.05);box-shadow:0 12px 28px rgba(37,211,102,0.5);animation:none}
+/* --- Floating Action Button (WhatsApp Icon + Share Label) --- */
+.fab{position:fixed;right:20px;bottom:20px;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:64px;height:64px;border-radius:50%;border:2px solid rgba(255,255,255,0.45);background:linear-gradient(135deg, #25d366, #128c7e);color:#fff;text-decoration:none;cursor:pointer;box-shadow:0 8px 24px rgba(37,211,102,0.45);transition:transform 0.3s cubic-bezier(0.175,0.885,0.32,1.275), box-shadow 0.3s ease;animation:fabFloat 3s ease-in-out infinite;padding:0}
+.fab svg{width:26px;height:26px;transition:transform 0.3s ease;flex-shrink:0}
+.fab-share-label{font-family:'Noto Sans Devanagari',sans-serif;font-size:10px;font-weight:700;line-height:1;letter-spacing:0.02em;color:#ffffff;text-shadow:0 1px 3px rgba(0,0,0,0.35)}
+.fab:hover{transform:translateY(-5px) scale(1.05);box-shadow:0 12px 28px rgba(37,211,102,0.55);animation:none}
 .fab:hover svg{transform:rotate(-10deg) scale(1.1)}
+.fab:disabled{opacity:0.75;cursor:wait}
 @keyframes fabFloat{ 0%{transform:translateY(0)} 50%{transform:translateY(-6px)} 100%{transform:translateY(0)} }
 
 .rv{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s ease}
