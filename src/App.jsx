@@ -114,8 +114,11 @@ export default function App() {
             </div>
           </div>
           
+               {/* Chhath Puja Donation Leaderboard Section */}
+        <LeaderboardSection onNavigate={navigateTo} />
+
           {/* Logo & Headline */}
-          <div className="wrap hero-in">
+          <div className="wrap hero-in" style={{ marginTop: '56px' }}>
             <Reveal delay={200}><Logo size={84} /></Reveal>
             <Reveal delay={300}><h1>इस छठ, जुड़िए एक नई सोच से।</h1></Reveal>
             <Reveal delay={500}><h2 className="hero-sub-title">Trust Community Fund (TCF)</h2></Reveal>
@@ -142,7 +145,7 @@ export default function App() {
           <GoldenScroll />
         </section>
 
-        {/* --- The Foundation: First 5 Members Section (Moved Right Below Scroll) --- */}
+        {/* --- The Foundation: First 5 Members Section --- */}
         <section className="foundation-section">
           <div className="wrap narrow">
             <Reveal className="foundation-header">
@@ -241,9 +244,6 @@ export default function App() {
         </section>
 
       
-
-             {/* Chhath Puja Donation Leaderboard Section */}
-        <LeaderboardSection onNavigate={navigateTo} />
 
         {IMAGES.length > 0 && (
 
