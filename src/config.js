@@ -130,7 +130,7 @@ export const LEADERBOARD_SETTINGS = {
   isDemo: false, // LIVE DATA MODE ENABLED
   campaignGoal: 10000, // Campaign goal ₹10,000
   title: 'छठ पूजा दानदाता लीडरबोर्ड',
-  altTitle: 'छठ पूजा 2026 दानदाता रैंक बोर्ड',
+  altTitle: 'छठ पूजा 2026 Donation Rank Board',
   subtitle: 'Community Support • Bigger Impact • Stronger Together',
   englishEyebrow: 'TCF COMMUNITY • CHHATH PUJA',
   festivalTag: 'छठ पूजा 2026',

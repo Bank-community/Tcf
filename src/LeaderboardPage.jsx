@@ -242,6 +242,7 @@ export default function LeaderboardPage({ onBack, onNavigate }) {
 
                     {/* Like / Appreciation Button */}
                     <div className="flb-col-likes">
+                      <span className="flb-row-brand">Trust Community Fund</span>
                       <LikeButton
                         donor={donor}
                         isLiked={isLiked(donor.id)}
@@ -250,6 +251,7 @@ export default function LeaderboardPage({ onBack, onNavigate }) {
                         isAnimating={animatingId === donor.id}
                       />
                     </div>
+
                   </article>
                 );
               })
