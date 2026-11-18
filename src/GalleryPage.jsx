@@ -1,13 +1,17 @@
 import { useState, useEffect, useRef } from 'react';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Keyboard } from 'swiper/modules';
+import 'swiper/css';
 import { SITE, useLiveGallery, wa, MSGS } from './config.js';
 import { Logo } from './components.jsx';
+
 
 export default function GalleryPage({ onBack, onFeedback }) {
   const { liveImages, liveCategories } = useLiveGallery();
   const [selectedCat, setSelectedCat] = useState('all');
   const [activeIdx, setActiveIdx] = useState(0);
   const [lightboxIdx, setLightboxIdx] = useState(null);
-  const touchStartX = useRef(null);
+  const swiperRef = useRef(null);
   const filtersRef = useRef(null);
 
   // Filter images based on year/section category
@@ -15,7 +19,7 @@ export default function GalleryPage({ onBack, onFeedback }) {
     ? liveImages
     : liveImages.filter((img) => img.category === selectedCat);
 
-  // Clamp active index and reset filter scroll when filtered list changes
+  // Reset active index and filter scroll when category changes
   useEffect(() => {
     setActiveIdx(0);
     if (filtersRef.current) filtersRef.current.scrollLeft = 0;
@@ -24,55 +28,30 @@ export default function GalleryPage({ onBack, onFeedback }) {
   const total = filteredImages.length;
 
   const nextSlide = () => {
-    if (total <= 1) return;
-    setActiveIdx((prev) => (prev + 1) % total);
+    const swiper = swiperRef.current;
+    if (!swiper || total <= 1) return;
+    if (swiper.isEnd) swiper.slideTo(0);
+    else swiper.slideNext();
   };
 
   const prevSlide = () => {
-    if (total <= 1) return;
-    setActiveIdx((prev) => (prev - 1 + total) % total);
+    const swiper = swiperRef.current;
+    if (!swiper || total <= 1) return;
+    if (swiper.isBeginning) swiper.slideTo(total - 1);
+    else swiper.slidePrev();
   };
 
-  // Keyboard navigation for coverflow & lightbox
+  // Keyboard navigation for fullscreen lightbox
   useEffect(() => {
+    if (lightboxIdx === null) return;
     const handleKeyDown = (e) => {
-      if (lightboxIdx !== null) {
-        if (e.key === 'Escape') setLightboxIdx(null);
-        if (e.key === 'ArrowRight') setLightboxIdx((prev) => (prev + 1) % total);
-        if (e.key === 'ArrowLeft') setLightboxIdx((prev) => (prev - 1 + total) % total);
-        return;
-      }
-      if (e.key === 'ArrowRight') nextSlide();
-      if (e.key === 'ArrowLeft') prevSlide();
+      if (e.key === 'Escape') setLightboxIdx(null);
+      if (e.key === 'ArrowRight') setLightboxIdx((prev) => (prev + 1) % total);
+      if (e.key === 'ArrowLeft') setLightboxIdx((prev) => (prev - 1 + total) % total);
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [lightboxIdx, total]);
-
-  // Touch swipe support for mobile
-  const handleTouchStart = (e) => {
-    touchStartX.current = e.touches[0].clientX;
-  };
-
-  const handleTouchEnd = (e) => {
-    if (touchStartX.current === null) return;
-    const touchEndX = e.changedTouches[0].clientX;
-    const diff = touchStartX.current - touchEndX;
-    if (Math.abs(diff) > 40) {
-      if (diff > 0) nextSlide();
-      else prevSlide();
-    }
-    touchStartX.current = null;
-  };
-
-  // Calculate position offset for 3D coverflow
-  const getOffset = (index) => {
-    let diff = index - activeIdx;
-    // Circular wrap for closest distance
-    if (diff > total / 2) diff -= total;
-    if (diff < -total / 2) diff += total;
-    return diff;
-  };
 
   return (
     <div className="gallery-page">
@@ -148,51 +127,55 @@ export default function GalleryPage({ onBack, onFeedback }) {
           </div>
         </section>
 
-        {/* 3D Coverflow Visual Carousel Section */}
+        {/* Apple-Style Smooth Horizontal Carousel (Swiper) */}
         <section className="gp-carousel-section">
-          <div
-            className="gp-coverflow-wrapper"
-            onTouchStart={handleTouchStart}
-            onTouchEnd={handleTouchEnd}
-          >
-            <div className="gp-coverflow-stage">
-              {filteredImages.map((img, i) => {
-                const offset = getOffset(i);
-                const isCenter = offset === 0;
-                const isNear = Math.abs(offset) <= 2;
+          <div className="gp-coverflow-wrapper">
+            <Swiper
+              key={selectedCat}
+              modules={[Keyboard]}
+              grabCursor={true}
+              centeredSlides={true}
+              slidesPerView="auto"
+              spaceBetween={16}
+              speed={380}
+              touchRatio={1.15}
+              threshold={4}
+              longSwipesRatio={0.25}
+              resistanceRatio={0.75}
+              keyboard={{ enabled: lightboxIdx === null }}
+              onSwiper={(swiper) => {
+                swiperRef.current = swiper;
+              }}
+              onSlideChange={(swiper) => {
+                setActiveIdx(swiper.activeIndex);
+              }}
+              className="gp-swiper"
+            >
+              {filteredImages.map((img, i) => (
+                <SwiperSlide
+                  key={img.id || i}
+                  className="gp-card"
+                  onClick={() => {
+                    if (swiperRef.current?.activeIndex === i) {
+                      setLightboxIdx(i);
+                    } else {
+                      swiperRef.current?.slideTo(i);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={img.title || img.caption}
+                >
+                  <div className="gp-card-inner">
+                    <img src={img.src} alt={img.alt || img.title} loading="lazy" />
+                    
+                    {/* Top Tag */}
+                    <div className="gp-card-tag-badge">
+                      <span>{img.tag || 'Community'}</span>
+                    </div>
 
-                if (!isNear) return null;
-
-                return (
-                  <div
-                    key={img.id || i}
-                    className={`gp-card ${isCenter ? 'center' : ''} ${offset < 0 ? 'left' : offset > 0 ? 'right' : ''}`}
-                    style={{
-                      '--offset': offset,
-                      '--abs-offset': Math.abs(offset),
-                      zIndex: isCenter ? 10 : 10 - Math.abs(offset) * 2,
-                    }}
-                    onClick={() => {
-                      if (isCenter) {
-                        setLightboxIdx(i);
-                      } else {
-                        setActiveIdx(i);
-                      }
-                    }}
-                    role="button"
-                    tabIndex={0}
-                    aria-label={img.title || img.caption}
-                  >
-                    <div className="gp-card-inner">
-                      <img src={img.src} alt={img.alt || img.title} loading="lazy" />
-                      
-                      {/* Top Tag */}
-                      <div className="gp-card-tag-badge">
-                        <span>{img.tag || 'Community'}</span>
-                      </div>
-
-                      {/* Video / Play indicator or Expand icon */}
-                      <div className="gp-card-action-circle" title={isCenter ? 'बड़ा करके देखें (Zoom)' : 'आगे लाएँ'}>
+                    {/* Video / Play indicator or Expand icon */}
+                    <div className="gp-card-action-circle" title="बड़ा करके देखें (Zoom)">
                         {img.isVideo ? (
                           <svg viewBox="0 0 24 24" fill="currentColor">
                             <polygon points="5 3 19 12 5 21 5 3" />
@@ -211,15 +194,14 @@ export default function GalleryPage({ onBack, onFeedback }) {
                       <div className="gp-card-overlay">
                         <span className="gp-card-date">{img.date || 'TCF Event'}</span>
                         <h3 className="gp-card-title">{img.title || 'TCF Community'}</h3>
-                        {(img.description || img.caption) && (
-                          <p className="gp-card-caption">{img.description || img.caption}</p>
-                        )}
-                      </div>
+                      {(img.description || img.caption) && (
+                        <p className="gp-card-caption">{img.description || img.caption}</p>
+                      )}
                     </div>
                   </div>
-                );
-              })}
-            </div>
+                </SwiperSlide>
+              ))}
+            </Swiper>
 
             {/* Bottom Controls: Circular Arrows & Slide Progress */}
             <div className="gp-controls">

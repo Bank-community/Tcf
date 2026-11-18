@@ -3,8 +3,8 @@ export const SITE = {
   name: 'Trust Community Fund',
   short: 'TCF',
   established: '23 जून 2024',
-  phoneDisplay: '93040 95758',
-  whatsapp: '919304095758', // country code 91 + number, digits only
+  phoneDisplay: '7903698180',
+  whatsapp: '917903698180', // country code 91 + number, digits only
   logo: 'https://ik.imagekit.io/nsyr92pse/tcf-icon-512.png', // or '/logo.png' after copying to /public
   provisional: true, // set false once figures are confirmed against official records
 };
@@ -16,13 +16,10 @@ export const STATS = [
 ];
 
 
-// Real Community Photos with rich metadata for Visual Diary
+// Real Community Photos with rich metadata for Visual Diary (2025 Section)
 export const GALLERY_CATEGORIES = [
   { id: 'all', label: 'सभी (All)' },
-  { id: 'chhath', label: 'छठ महापर्व' },
-  { id: 'service', label: 'सेवा व वितरण' },
-  { id: 'community', label: 'TCF परिवार' },
-  { id: 'memories', label: 'स्मृतियां' }
+  { id: '2025', label: '2025' }
 ];
 
 export const IMAGES = [
@@ -31,9 +28,10 @@ export const IMAGES = [
     src: 'https://ik.imagekit.io/kdtvm0r78/imagebox-uploads/IMG_20261017_200709_BWDrKwvou.jpg', 
     alt: 'TCF Community Group Photo', 
     title: 'हमारी Community', 
+    description: 'TCF परिवार के सभी सदस्यों की सामूहिक तस्वीर व सौहार्द',
     caption: 'TCF परिवार के सभी सदस्यों की सामूहिक तस्वीर व सौहार्द',
-    category: 'community',
-    tag: 'Community',
+    category: '2025',
+    tag: '2025',
     date: 'अक्टूबर 2025'
   },
   { 
@@ -41,9 +39,10 @@ export const IMAGES = [
     src: 'https://ik.imagekit.io/kdtvm0r78/imagebox-uploads/IMG-20261017-WA0049_PPZ_Ft3-E.jpg', 
     alt: 'TCF Community Event', 
     title: 'सेवा और सहयोग', 
+    description: 'महापर्व के पावन अवसर पर समाज सेवा और आपसी सहायता',
     caption: 'महापर्व के पावन अवसर पर समाज सेवा और आपसी सहायता',
-    category: 'service',
-    tag: 'Service',
+    category: '2025',
+    tag: '2025',
     date: 'अक्टूबर 2025',
     isVideo: true
   },
@@ -52,9 +51,10 @@ export const IMAGES = [
     src: 'https://ik.imagekit.io/kdtvm0r78/imagebox-uploads/IMG-20261017-WA0044_jDZ51fne7.jpg', 
     alt: 'Community Togetherness', 
     title: 'एकजुटता व आस्था', 
+    description: 'छठ पूजा के पावन अवसर पर घाट पर सेवा और समर्पण',
     caption: 'छठ पूजा के पावन अवसर पर घाट पर सेवा और समर्पण',
-    category: 'chhath',
-    tag: 'Chhath Puja',
+    category: '2025',
+    tag: '2025',
     date: 'छठ महापर्व 2025'
   },
   { 
@@ -62,9 +62,10 @@ export const IMAGES = [
     src: 'https://ik.imagekit.io/kdtvm0r78/imagebox-uploads/IMG-20261017-WA0043_xdafpgTkE.jpg', 
     alt: 'Chhath Puja Activity', 
     title: 'यादगार पल', 
+    description: 'सामुदायिक आयोजन में सक्रिय सहभागिता और उत्सव का उल्लास',
     caption: 'सामुदायिक आयोजन में सक्रिय सहभागिता और उत्सव का उल्लास',
-    category: 'chhath',
-    tag: 'Chhath Puja',
+    category: '2025',
+    tag: '2025',
     date: 'अक्टूबर 2025'
   },
   { 
@@ -72,9 +73,10 @@ export const IMAGES = [
     src: 'https://ik.imagekit.io/kdtvm0r78/imagebox-uploads/IMG-20261017-WA0046_a39zIfwOv.jpg', 
     alt: 'Community Food Distribution', 
     title: 'प्रसाद व भोजन वितरण', 
+    description: 'साथ मिलकर आगे बढ़ना और वंचितों के प्रति सेवा का संकल्प',
     caption: 'साथ मिलकर आगे बढ़ना और वंचितों के प्रति सेवा का संकल्प',
-    category: 'service',
-    tag: 'Distribution',
+    category: '2025',
+    tag: '2025',
     date: 'अक्टूबर 2025'
   },  
   { 
@@ -82,9 +84,10 @@ export const IMAGES = [
     src: 'https://ik.imagekit.io/kdtvm0r78/imagebox-uploads/IMG-20251028-WA0013_ySe5ohLht.jpg', 
     alt: 'TCF Members at Event', 
     title: 'TCF प्रारंभिक बैठक', 
+    description: 'TCF के स्थापना काल और शुरुआती बैठकों की अनमोल स्मृतियां',
     caption: 'TCF के स्थापना काल और शुरुआती बैठकों की अनमोल स्मृतियां',
-    category: 'memories',
-    tag: 'Memories',
+    category: '2025',
+    tag: '2025',
     date: 'जून 2024'
   },
   { 
@@ -92,23 +95,26 @@ export const IMAGES = [
     src: 'https://ik.imagekit.io/kdtvm0r78/imagebox-uploads/IMG-20261017-WA0028_IuxQu4M92.jpg', 
     alt: 'TCF Members at Event', 
     title: 'TCF परिवार मिलन', 
+    description: 'सदस्यों का आपसी विचार-विमर्श, योजनाएं और सामूहिक संवाद',
     caption: 'सदस्यों का आपसी विचार-विमर्श, योजनाएं और सामूहिक संवाद',
-    category: 'community',
-    tag: 'Family',
+    category: '2025',
+    tag: '2025',
     date: 'अक्टूबर 2025'
   },
-  {
+  { 
     id: 8,
     src: 'https://ik.imagekit.io/kdtvm0r78/assets-task-01jyqe64mye7ca8pjrtcrewwfm-1750985924-img-1_xcFbHrb9F.webp',
     alt: 'TCF Chhath Celebration',
     title: 'महापर्व अर्घ्य व श्रद्धा',
+    description: 'भगवान भास्कर को सामूहिक अर्घ्य और संपूर्ण समाज की खुशहाली की कामना',
     caption: 'भगवान भास्कर को सामूहिक अर्घ्य और संपूर्ण समाज की खुशहाली की कामना',
-    category: 'chhath',
-    tag: 'Chhath Puja',
+    category: '2025',
+    tag: '2025',
     date: 'छठ 2025',
     isVideo: true
   }
 ];
+
 
 export const MSGS = {
   info: 'नमस्ते, मुझे TCF (Trust Community Fund) के बारे में जानकारी चाहिए।',
@@ -314,7 +320,7 @@ export const useLiveLeaderboard = () => {
   return { liveDonors };
 };
 
-// ===== Live Gallery Hook (Reads Admin Panel Sections 2025/2026 & Photos) =====
+// ===== Live Gallery Hook (Merges Admin Panel Sections + Manual 2025 Section) =====
 export const useLiveGallery = () => {
   const [liveImages, setLiveImages] = useState(IMAGES);
   const [liveCategories, setLiveCategories] = useState(GALLERY_CATEGORIES);
@@ -323,19 +329,17 @@ export const useLiveGallery = () => {
     const galleryRef = ref(db, 'gallery/sections');
     const unsubscribe = onValue(galleryRef, (snapshot) => {
       const data = snapshot.val();
+      const yearSet = new Set(['2025']);
+      const photosList = [];
+
       if (data) {
         const sections = Object.entries(data)
           .map(([secId, sec]) => ({ id: secId, ...sec }))
-          .sort((a, b) => (b.year || '').localeCompare(a.year || '') || (b.createdAt || 0) - (a.createdAt || 0));
-
-        const dynamicCats = [{ id: 'all', label: 'सभी (All)' }];
-        const photosList = [];
+          .sort((a, b) => String(b.year || '').localeCompare(String(a.year || '')) || (b.createdAt || 0) - (a.createdAt || 0));
 
         sections.forEach((sec) => {
           const yearTag = String(sec.year || sec.title || 'TCF').trim();
-          if (!dynamicCats.some((c) => c.id === yearTag)) {
-            dynamicCats.push({ id: yearTag, label: yearTag });
-          }
+          yearSet.add(yearTag);
 
           if (sec.photos) {
             const secPhotos = Object.entries(sec.photos)
@@ -365,18 +369,21 @@ export const useLiveGallery = () => {
             });
           }
         });
-
-        if (photosList.length > 0) {
-          setLiveImages(photosList);
-          setLiveCategories(dynamicCats);
-        } else {
-          setLiveImages(IMAGES);
-          setLiveCategories(GALLERY_CATEGORIES);
-        }
-      } else {
-        setLiveImages(IMAGES);
-        setLiveCategories(GALLERY_CATEGORIES);
       }
+
+      // Avoid duplicates if any manual 2025 photo is also uploaded via Admin Panel
+      const seenBaseUrls = new Set(photosList.map((p) => p.src.split('?')[0]));
+      const manual2025 = IMAGES.filter((img) => !seenBaseUrls.has(img.src.split('?')[0]));
+      const mergedImages = [...photosList, ...manual2025];
+
+      const sortedYears = Array.from(yearSet).sort((a, b) => b.localeCompare(a));
+      const dynamicCats = [
+        { id: 'all', label: 'सभी (All)' },
+        ...sortedYears.map((yr) => ({ id: yr, label: yr })),
+      ];
+
+      setLiveImages(mergedImages);
+      setLiveCategories(dynamicCats);
     });
 
     return () => unsubscribe();
@@ -384,6 +391,7 @@ export const useLiveGallery = () => {
 
   return { liveImages, liveCategories };
 };
+
 
 // ===== Direct Poster Image & Website Link Share =====
 export const LEADERBOARD_SHARE_IMAGE = 'https://ik.imagekit.io/kdtvm0r78/imagebox-uploads/38407-amp_eq2j6kmjs.jpg';
