@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { SITE, STATS, IMAGES, MSGS, FAQ, wa, LEADERBOARD_DONORS, LEADERBOARD_SETTINGS, getSortedLeaderboard, useLiveLeaderboard, shareLeaderboardPoster } from './config.js';
+import { SITE, STATS, MSGS, FAQ, wa, LEADERBOARD_DONORS, LEADERBOARD_SETTINGS, getSortedLeaderboard, useLiveLeaderboard, useLiveGallery, shareLeaderboardPoster } from './config.js';
 import { Reveal, Counter, Logo, Faq, LightboxGallery, HeroGraph, NavMenu, FeedbackForm, GoldenScroll } from './components.jsx';
 import GalleryPage from './GalleryPage.jsx';
 import LeaderboardSection from './LeaderboardSection.jsx';
@@ -30,6 +30,7 @@ export default function App() {
   const [page, setPage] = useState(resolveRoute);
   const [sharing, setSharing] = useState(false);
   const { liveDonors } = useLiveLeaderboard();
+  const { liveImages } = useLiveGallery();
   const displayDonors = LEADERBOARD_SETTINGS.isDemo ? LEADERBOARD_DONORS : liveDonors;
   const sortedDonors = getSortedLeaderboard(displayDonors);
 
@@ -259,13 +260,13 @@ export default function App() {
 
       
 
-        {IMAGES.length > 0 && (
+        {liveImages.length > 0 && (
 
           <section id="gallery" className="community-story">
             <div className="wrap">
               <Reveal>
                 <div className="section-head c">
-                  <span className="badge-text">हमारी Community | Chhath Puja 2025</span>
+                  <span className="badge-text">हमारी Community | TCF Gallery</span>
                   <h2>TCF सिर्फ एक सिस्टम नहीं, एक Community है ❤️</h2>
                   <p>साथ मिलकर आगे बढ़ने की सोच, आपसी सहयोग और यादगार पल — यही है TCF की Community की पहचान।</p>
                   <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center' }}>
@@ -285,8 +286,9 @@ export default function App() {
                 </div>
               </Reveal>
               <Reveal delay={150}>
-                <LightboxGallery images={IMAGES} />
+                <LightboxGallery images={liveImages} />
               </Reveal>
+
             </div>
           </section>
         )}

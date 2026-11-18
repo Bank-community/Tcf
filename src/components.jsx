@@ -249,11 +249,33 @@ export function LightboxGallery({ images }) {
 
   return (
     <>
-      <div className="gal-grid">
+           <div className="gal-grid">
         {images.map((im, i) => (
-          <div key={i} className={`gal-item ${i === 0 ? 'featured' : ''}`} onClick={() => openBox(i)}>
-            <img src={im.src} alt={im.alt} loading="lazy" />
-            <div className="gal-cap"><span>{im.caption || 'TCF Community'}</span></div>
+          <div key={im.id || i} className={`gal-item ${i === 0 ? 'featured' : ''}`} style={{ position: 'relative' }} onClick={() => openBox(i)}>
+            {(im.tag || im.date) && (
+              <span
+                className="gal-year-tag"
+                style={{
+                  position: 'absolute',
+                  top: '12px',
+                  right: '12px',
+                  zIndex: 2,
+                  background: 'rgba(10, 29, 56, 0.9)',
+                  color: '#fde047',
+                  border: '1.5px solid #c9a24b',
+                  padding: '3px 12px',
+                  borderRadius: '999px',
+                  fontSize: '11px',
+                  fontWeight: '700',
+                  letterSpacing: '0.04em',
+                  boxShadow: '0 4px 10px rgba(0,0,0,0.35)'
+                }}
+              >
+                {im.tag || im.date}
+              </span>
+            )}
+            <img src={im.src} alt={im.alt || im.title} loading="lazy" />
+            <div className="gal-cap"><span>{im.title || im.caption || 'TCF Community'}</span></div>
           </div>
         ))}
       </div>
@@ -264,9 +286,15 @@ export function LightboxGallery({ images }) {
           <button className="lb-nav lb-prev" onClick={prev} aria-label="Previous">‹</button>
           
           <div className="lb-content" onClick={(e) => e.stopPropagation()}>
-            <img src={images[idx].src} alt={images[idx].alt} />
-            {images[idx].caption && <p className="lb-text">{images[idx].caption}</p>}
+            <img src={images[idx].src} alt={images[idx].alt || images[idx].title} />
+            {images[idx].title && (
+              <p className="lb-text">
+                {images[idx].tag ? `(${images[idx].tag}) ` : ''}
+                {images[idx].title}
+              </p>
+            )}
           </div>
+
           
           <button className="lb-nav lb-next" onClick={next} aria-label="Next">›</button>
         </div>

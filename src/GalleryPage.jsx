@@ -1,18 +1,19 @@
 import { useState, useEffect, useRef } from 'react';
-import { SITE, IMAGES, GALLERY_CATEGORIES, wa, MSGS } from './config.js';
+import { SITE, useLiveGallery, wa, MSGS } from './config.js';
 import { Logo } from './components.jsx';
 
 export default function GalleryPage({ onBack, onFeedback }) {
+  const { liveImages, liveCategories } = useLiveGallery();
   const [selectedCat, setSelectedCat] = useState('all');
   const [activeIdx, setActiveIdx] = useState(0);
   const [lightboxIdx, setLightboxIdx] = useState(null);
   const touchStartX = useRef(null);
   const filtersRef = useRef(null);
 
-  // Filter images based on category
+  // Filter images based on year/section category
   const filteredImages = selectedCat === 'all'
-    ? IMAGES
-    : IMAGES.filter((img) => img.category === selectedCat);
+    ? liveImages
+    : liveImages.filter((img) => img.category === selectedCat);
 
   // Clamp active index and reset filter scroll when filtered list changes
   useEffect(() => {
@@ -123,11 +124,11 @@ export default function GalleryPage({ onBack, onFeedback }) {
             {/* Category / Filter Pills */}
             <div className="gp-filters-container" ref={filtersRef}>
               <div className="gp-filters" role="tablist">
-                {GALLERY_CATEGORIES.map((cat) => {
+                {liveCategories.map((cat) => {
                   const isActive = selectedCat === cat.id;
                   const count = cat.id === 'all'
-                    ? IMAGES.length
-                    : IMAGES.filter((img) => img.category === cat.id).length;
+                    ? liveImages.length
+                    : liveImages.filter((img) => img.category === cat.id).length;
                   return (
                     <button
                       key={cat.id}
@@ -209,8 +210,10 @@ export default function GalleryPage({ onBack, onFeedback }) {
                       {/* Bottom Gradient Overlay Info */}
                       <div className="gp-card-overlay">
                         <span className="gp-card-date">{img.date || 'TCF Event'}</span>
-                        <h3 className="gp-card-title">{img.title || img.caption}</h3>
-                        <p className="gp-card-caption">{img.caption}</p>
+                        <h3 className="gp-card-title">{img.title || 'TCF Community'}</h3>
+                        {(img.description || img.caption) && (
+                          <p className="gp-card-caption">{img.description || img.caption}</p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -283,8 +286,10 @@ export default function GalleryPage({ onBack, onFeedback }) {
                     )}
                   </div>
                   <div className="gp-grid-info">
-                    <h4>{img.title || img.caption}</h4>
-                    <p>{img.caption}</p>
+                    <h4>{img.title || 'TCF Community'}</h4>
+                    {(img.description || img.caption) && (
+                      <p>{img.description || img.caption}</p>
+                    )}
                     <div className="gp-grid-meta">
                       <span>{img.date || 'TCF Community'}</span>
                       <span className="gp-view-link">View Fullscreen ↗</span>
@@ -350,8 +355,10 @@ export default function GalleryPage({ onBack, onFeedback }) {
             <div className="gp-lb-caption-bar">
               <div className="gp-lb-text">
                 <span className="gp-lb-tag">{filteredImages[lightboxIdx].tag || 'Community'}</span>
-                <h3>{filteredImages[lightboxIdx].title || filteredImages[lightboxIdx].caption}</h3>
-                <p>{filteredImages[lightboxIdx].caption}</p>
+                <h3>{filteredImages[lightboxIdx].title || 'TCF Community'}</h3>
+                {(filteredImages[lightboxIdx].description || filteredImages[lightboxIdx].caption) && (
+                  <p>{filteredImages[lightboxIdx].description || filteredImages[lightboxIdx].caption}</p>
+                )}
               </div>
               <div className="gp-lb-meta">
                 <span>{filteredImages[lightboxIdx].date}</span>

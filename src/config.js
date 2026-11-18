@@ -314,6 +314,77 @@ export const useLiveLeaderboard = () => {
   return { liveDonors };
 };
 
+// ===== Live Gallery Hook (Reads Admin Panel Sections 2025/2026 & Photos) =====
+export const useLiveGallery = () => {
+  const [liveImages, setLiveImages] = useState(IMAGES);
+  const [liveCategories, setLiveCategories] = useState(GALLERY_CATEGORIES);
+
+  useEffect(() => {
+    const galleryRef = ref(db, 'gallery/sections');
+    const unsubscribe = onValue(galleryRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const sections = Object.entries(data)
+          .map(([secId, sec]) => ({ id: secId, ...sec }))
+          .sort((a, b) => (b.year || '').localeCompare(a.year || '') || (b.createdAt || 0) - (a.createdAt || 0));
+
+        const dynamicCats = [{ id: 'all', label: 'सभी (All)' }];
+        const photosList = [];
+
+        sections.forEach((sec) => {
+          const yearTag = String(sec.year || sec.title || 'TCF').trim();
+          if (!dynamicCats.some((c) => c.id === yearTag)) {
+            dynamicCats.push({ id: yearTag, label: yearTag });
+          }
+
+          if (sec.photos) {
+            const secPhotos = Object.entries(sec.photos)
+              .map(([pId, p]) => ({ pId, ...p }))
+              .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+            secPhotos.forEach((photo) => {
+              if (photo.imageUrl) {
+                const cleanTitle = (photo.title || '').trim();
+                const cleanDesc = (photo.description || '').trim();
+                let hdUrl = photo.imageUrl;
+                if (hdUrl.includes('ik.imagekit.io') && !hdUrl.includes('tr=')) {
+                  hdUrl += (hdUrl.includes('?') ? '&' : '?') + 'tr=orig-true';
+                }
+                photosList.push({
+                  id: photo.pId,
+                  src: hdUrl,
+                  alt: cleanTitle || `TCF ${yearTag}`,
+                  title: cleanTitle || 'TCF Community',
+                  description: cleanDesc,
+                  caption: cleanDesc,
+                  category: yearTag,
+                  tag: yearTag,
+                  date: yearTag,
+                });
+              }
+            });
+          }
+        });
+
+        if (photosList.length > 0) {
+          setLiveImages(photosList);
+          setLiveCategories(dynamicCats);
+        } else {
+          setLiveImages(IMAGES);
+          setLiveCategories(GALLERY_CATEGORIES);
+        }
+      } else {
+        setLiveImages(IMAGES);
+        setLiveCategories(GALLERY_CATEGORIES);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  return { liveImages, liveCategories };
+};
+
 // ===== Direct Poster Image & Website Link Share =====
 export const LEADERBOARD_SHARE_IMAGE = 'https://ik.imagekit.io/kdtvm0r78/imagebox-uploads/38407-amp_eq2j6kmjs.jpg';
 
